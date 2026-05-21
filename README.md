@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 국립군산대학교 영어영문학과 시화전</title>
+    
+    <!-- 폰트 불러오기 (Noto Sans KR, Noto Serif KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- 아이콘 (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --bg-color: #f9f9f9;
+            --text-color: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .serif { font-family: 'Noto Serif KR', serif; }
+
+        /* --- 시네마틱 인트로 애니메이션 --- */
+        #intro-screen-1, #intro-screen-2 {
+            position: fixed;
+            inset: 0;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1.5s ease-in-out, visibility 1.5s ease-in-out;
+        }
+
+        /* 두 번째 타자기 배경 (빈티지/차분한 이미지) */
+        #intro-screen-2 {
+            opacity: 0;
+            visibility: hidden;
+            background-image: url('https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=1000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .intro-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            animation: fadeSequence 8s infinite;
+        }
+
+        .intro-bg:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1455390582262-044cdead27d8?q=80&w=1000&auto=format&fit=crop'); animation-delay: 0s; }
+        .intro-bg:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000&auto=format&fit=crop'); animation-delay: 2.5s; }
+        .intro-bg:nth-child(3) { background-image: url('https://images.unsplash.com/photo-1473186578172-c141e6798cf4?q=80&w=1000&auto=format&fit=crop'); animation-delay: 5s; }
+
+        .intro-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .intro-text {
+            position: relative;
+            z-index: 10;
+            color: white;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: titleReveal 2.5s forwards;
+            animation-delay: 2s; /* 배경이 먼저 완전히 나타나도록 텍스트 등장 시간을 2초로 늦춤 */
+        }
+
+        /* --- 타이핑 커서 애니메이션 --- */
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+            color: #d1d5db;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @keyframes fadeSequence {
+            0%, 100% { opacity: 0; transform: scale(1); }
+            20%, 40% { opacity: 1; transform: scale(1.05); } 
+            60% { opacity: 0; transform: scale(1.1); }
+        }
+
+        @keyframes titleReveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- 앱 화면 전환용 클래스 --- */
+        .page {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .page.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* --- 디테일 페이지 시 원문 스타일 --- */
+        .poem-content {
+            white-space: pre-line;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+        .poem-stanza {
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-gray-200">
+
+    <!-- 1. 시네마틱 인트로 화면 1 (타이틀) -->
+    <div id="intro-screen-1">
+        <div class="intro-bg"></div>
+        <div class="intro-bg"></div>
+        <div class="intro-bg"></div>
+        <div class="intro-overlay"></div>
+        
+        <div class="intro-text px-6">
+            <h2 class="text-sm tracking-[0.3em] uppercase mb-4 text-gray-300">2026 Poetry Exhibition</h2>
+            <h1 class="text-3xl md:text-4xl serif font-bold tracking-wider mb-2">국립군산대학교</h1>
+            <p class="text-xl serif font-light tracking-widest text-gray-200">영어영문학과 시화전</p>
+        </div>
+    </div>
+
+    <!-- 1-5. 시네마틱 인트로 화면 2 (타자기 효과) -->
+    <div id="intro-screen-2">
+        <div class="intro-overlay" style="background: rgba(0, 0, 0, 0.75);"></div>
+        <div class="relative z-10 px-8 text-center w-full">
+            <p id="typewriter-text" class="text-base font-light text-gray-200 min-h-[50px] leading-relaxed word-break-keep"></p>
+        </div>
+    </div>
+
+    <!-- 2. 메인 화면 (작품 리스트) -->
+    <div id="main-screen" class="page min-h-screen pb-20">
+        <!-- 헤더 -->
+        <header class="pt-16 pb-10 px-6 text-center border-b border-gray-200 bg-white">
+            <h1 class="serif text-2xl font-bold mb-2">무한한 내면의 울림, '영시 한 장'</h1>
+            <p class="text-xs text-gray-500 tracking-widest">2026 KSNU DEPT. OF ENGLISH LANGUAGE AND LITERATURE</p>
+            <button onclick="openDept()" class="mt-5 inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 rounded-full text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors shadow-sm">
+                <i data-lucide="library" class="w-4 h-4"></i> 학과 소개 보기
+            </button>
+        </header>
+
+        <!-- 리스트 -->
+        <main class="max-w-2xl mx-auto px-6 py-8">
+            <div id="poem-grid" class="grid grid-cols-2 gap-x-5 gap-y-2 pb-12">
+                <!-- 자바스크립트로 리스트 렌더링 됨 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. 작품 상세 화면 -->
+    <div id="detail-screen" class="page min-h-screen bg-white">
+        <!-- 고정 상단바 -->
+        <div class="sticky top-0 bg-white/90 backdrop-blur-sm border-b border-gray-100 z-50 flex items-center px-4 py-4">
+            <button onclick="goHome()" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+            <span class="mx-auto text-sm font-bold tracking-wider pr-8" id="detail-top-title">작품 감상</span>
+        </div>
+
+        <main class="max-w-2xl mx-auto px-6 py-8 pb-32">
+            <!-- 작품 헤더 (제목, 작가) -->
+            <div class="text-center mb-10">
+                <h1 id="detail-title" class="serif text-3xl font-bold mb-4 word-break-keep">제목</h1>
+                <p id="detail-author" class="text-lg font-medium text-gray-800">작가명</p>
+                <p id="detail-meta" class="text-sm text-gray-500 mt-1">생몰연도</p>
+            </div>
+
+            <!-- 오디오북 플레이어 -->
+            <div class="bg-gray-50 rounded-2xl p-5 mb-12 flex items-center justify-between border border-gray-100 shadow-sm">
+                <div class="flex items-center gap-4">
+                    <button id="audio-btn" onclick="toggleAudio()" class="w-12 h-12 bg-black text-white rounded-full flex justify-center items-center hover:bg-gray-800 transition-transform active:scale-95">
+                        <i data-lucide="play" id="audio-icon" class="w-5 h-5 ml-1"></i>
+                    </button>
+                    <div>
+                        <p class="font-bold text-sm">오디오북 듣기</p>
+                        <p class="text-xs text-gray-500 mt-1">영문 원문을 오디오로 감상하세요</p>
+                    </div>
+                </div>
+                <div class="flex gap-1" id="audio-wave" style="display: none;">
+                    <div class="w-1 h-4 bg-gray-400 rounded-full animate-[bounce_1s_infinite]"></div>
+                    <div class="w-1 h-6 bg-gray-400 rounded-full animate-[bounce_1s_infinite_0.2s]"></div>
+                    <div class="w-1 h-3 bg-gray-400 rounded-full animate-[bounce_1s_infinite_0.4s]"></div>
+                </div>
+            </div>
+
+            <!-- 작가 소개 -->
+            <section class="mb-12">
+                <h3 class="text-sm font-bold text-gray-400 tracking-widest mb-4 uppercase border-b pb-2">About the Author</h3>
+                <h4 id="author-sub" class="font-bold text-lg mb-3">서브 타이틀</h4>
+                <p id="author-desc" class="text-[15px] leading-relaxed text-gray-700 text-justify">작가 설명</p>
+            </section>
+
+            <!-- 시 원문 및 번역 -->
+            <section class="mb-12">
+                <h3 class="text-sm font-bold text-gray-400 tracking-widest mb-6 uppercase border-b pb-2">Poem</h3>
+                <div id="poem-text" class="serif text-[15px] leading-loose text-gray-800">
+                    <!-- 시 내용 삽입 -->
+                </div>
+            </section>
+
+            <!-- 시 해설 -->
+            <section class="mb-12">
+                <h3 class="text-sm font-bold text-gray-400 tracking-widest mb-4 uppercase border-b pb-2">Commentary</h3>
+                <h4 id="commentary-sub" class="font-bold text-lg mb-3">해설 타이틀</h4>
+                <p id="commentary-desc" class="text-[15px] leading-relaxed text-gray-700 text-justify">해설 내용</p>
+            </section>
+
+            <!-- 학생들을 위한 질문 -->
+            <section class="bg-gray-50 p-6 rounded-xl border border-gray-200 mt-16 text-center">
+                <i data-lucide="message-circle-question" class="w-8 h-8 mx-auto text-gray-400 mb-4"></i>
+                <h4 class="text-xs font-bold text-gray-500 tracking-widest mb-3 uppercase">Question for Reflection</h4>
+                <p id="reflection-question" class="text-[15px] font-medium text-gray-800 italic word-break-keep">
+                    질문 내용
+                </p>
+            </section>
+        </main>
+    </div>
+
+    <!-- 3.5 학과 소개 화면 -->
+    <div id="dept-screen" class="page min-h-screen bg-white">
+        <!-- 고정 상단바 -->
+        <div class="sticky top-0 bg-white/90 backdrop-blur-sm border-b border-gray-100 z-50 flex items-center px-4 py-4">
+            <button onclick="closeDept()" class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+            <span class="mx-auto text-sm font-bold tracking-wider pr-8">학과 소개</span>
+        </div>
+
+        <main class="max-w-2xl mx-auto px-6 py-10 pb-32">
+            <!-- 소개 타이틀 -->
+            <div class="text-center mb-10">
+                <h1 class="serif text-3xl font-bold mb-4">국립군산대학교<br>영어영문학과</h1>
+                <p class="text-sm text-gray-500 tracking-widest">DEPT. OF ENGLISH LANGUAGE AND LITERATURE</p>
+            </div>
+
+            <!-- 대표 이미지 -->
+            <div class="w-full h-56 bg-gray-100 rounded-2xl mb-10 bg-cover bg-center shadow-inner" style="background-image: url('https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?q=80&w=1000&auto=format&fit=crop');"></div>
+
+            <!-- 소개 내용 -->
+            <section class="space-y-6 text-[15px] leading-loose text-gray-700 text-justify word-break-keep">
+                <p>
+                    <span class="font-bold text-black text-lg">세계와 소통하는 언어, 심연을 탐구하는 학과</span><br><br>
+                    국립군산대학교 영어영문학과는 영미문학과 영어학에 대한 깊이 있는 탐구를 통해 세계와 소통하는 글로벌 인재를 양성합니다.
+                </p>
+                <p>
+                    영미시, 소설, 희곡 등 다양한 문학 작품을 분석하며 인간의 삶과 사회에 대한 깊은 통찰력을 기르고, 언어학, 영어교육 등 실용적이고 체계적인 언어 교육을 통해 탁월한 영어 의사소통 능력을 함양합니다.
+                </p>
+                <!-- 학과 홈페이지 바로가기 버튼 -->
+                <a href="https://www.kunsan.ac.kr/knuenglish/index.kunsan#" target="_blank" rel="noopener noreferrer" class="mt-8 flex items-center justify-between p-5 rounded-xl border border-[#1a3673]/20 bg-[#1a3673]/5 hover:bg-[#1a3673]/10 transition-colors group">
+                    <span class="font-bold text-[#1a3673] text-sm tracking-wider">학과 홈페이지 방문하기</span>
+                    <i data-lucide="external-link" class="w-5 h-5 text-[#1a3673] group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </section>
+        </main>
+    </div>
+
+    <!-- 4. 자바스크립트 로직 및 데이터 -->
+    <script>
+        // Lucide 아이콘 초기화
+        lucide.createIcons();
+
+        // --- 데이터 모델 ---
+        const poems = [
+            {
+                id: 1,
+                imgUrl: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop",
+                titleKr: "초원을 만들려면",
+                titleEn: "To Make a Prairie",
+                authorKr: "에밀리 디킨슨",
+                authorEn: "Emily Dickinson",
+                years: "(1830–1886)",
+                authorSub: "내면의 무한한 우주를 노래한 시인",
+                authorDesc: "에밀리 디킨슨은 19세기 미국 문학을 대표하는 가장 독창적인 시인 중 한 명입니다. 그녀는 평생 고향인 매사추세츠 앰허스트의 자택에서 은둔에 가까운 삶을 살았지만, 겉으로 보기에 고요했던 그녀의 삶 뒤에는 1,800편이 넘는 강렬하고 깊은 시적 세계가 숨겨져 있었습니다.<br><br>디킨슨은 자연, 사랑, 죽음, 그리고 영혼의 본질을 극도로 압축된 언어와 독특한 문장 부호를 통해 대담하게 표현했습니다. 그녀의 삶은, 우리에게 눈에 보이는 환경보다 중요한 것은 내면의 깊이라는 것을 보여줍니다.",
+                poemEn: "To make a prairie it takes a clover and one bee,\nOne clover, and a bee.\nAnd revery.\nThe revery alone will do,\nIf bees are few.",
+                poemHtml: `
+                    <div class="poem-stanza">
+                        <span class="font-bold">To make a prairie it takes a clover and one bee,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">초원을 만들려면 클로버 한 포기와 꿀벌 한 마리,</span>
+                        
+                        <span class="font-bold">One clover, and a bee.</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">클로버 한 포기와, 꿀벌 한 마리.</span>
+                        
+                        <span class="font-bold">And revery.</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">그리고 몽상(夢想).</span>
+                    </div>
+                    <div class="poem-stanza">
+                        <span class="font-bold">The revery alone will do,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">몽상 하나만으로도 충분하지,</span>
+                        
+                        <span class="font-bold">If bees are few.</span><br>
+                        <span class="text-gray-500 text-sm block">꿀벌이 부족하다면.</span>
+                    </div>
+                `,
+                commentarySub: "상상력이 창조하는 무한한 가능성",
+                commentaryDesc: "에밀리 디킨슨의 이 시는 단 몇 줄의 단어로 인간 정신이 가진 위대한 힘을 노래합니다. 시인은 광활한 초원을 만들기 위해 필요한 조건으로 '클로버 한 포기'와 '꿀벌 한 마리'라는 아주 소박한 것들을 제시하지만, 진정한 핵심은 그다음 등장하는 '몽상(Revery)'에 있습니다.<br><br>대학이라는 공간에서 우리가 마주하는 현실의 자원이나 환경은 때로 부족해 보일 수 있습니다. 하지만 디킨슨이 말한 '몽상'처럼, 우리 내면에 품은 창의적인 사유와 학문적 열정이 있다면 우리는 언제 어디서든 자신만의 거대한 가능성의 영토를 개척해 나갈 수 있습니다.",
+                question: "여러분이 꿈꾸는 '자신만의 초원'은 어떤 모습인가요? 그곳을 채울 당신의 '몽상'은 무엇입니까?"
+            },
+            {
+                id: 2,
+                imgUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop",
+                titleKr: "소네트 18번",
+                titleEn: "Sonnet 18",
+                authorKr: "윌리엄 셰익스피어",
+                authorEn: "William Shakespeare",
+                years: "(1564–1616)",
+                authorSub: "인간의 영혼을 비추는 영원한 거장",
+                authorDesc: "윌리엄 셰익스피어는 세계 문학사에서 가장 위대한 극작가이자 시인으로 손꼽힙니다. 그의 희곡들이 무대 위에서 사회의 드라마를 보여주었다면, 154편의 소네트는 인간 내면의 가장 깊은 감정인 '사랑'과 '시간'의 본질을 정교하게 탐구했습니다.<br><br>엄격한 형식적 제약 속에서도 시대를 초월하는 보편적인 감정을 탁월한 은유로 표현해낸 그의 시는, 언어와 문학이 가진 시공간을 초월하는 생명력을 증명합니다.",
+                poemEn: "Shall I compare thee to a summer’s day?\nThou art more lovely and more temperate:\nRough winds do shake the darling buds of May,\nAnd summer’s lease hath all too short a date:\n\nSometime too hot the eye of heaven shines,\nAnd often is his gold complexion dimm’d;\nAnd every fair from fair sometime declines,\nBy chance or nature’s changing course untrimm’d;\n\nBut thy eternal summer shall not fade\nNor lose possession of that fair thou owest;\nNor shall Death brag thou wander’st in his shade,\nWhen in eternal lines to time thou growest:\n\nSo long as men can breathe or eyes can see,\nSo long lives this and this gives life to thee.",
+                poemHtml: `
+                    <div class="poem-stanza">
+                        <span class="font-bold">Shall I compare thee to a summer’s day?</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">그대를 여름날에 비해보면 어떨까요?</span>
+                        <span class="font-bold">Thou art more lovely and more temperate:</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">그대가 더 사랑스럽고 온화합니다.</span>
+                        <span class="font-bold">Rough winds do shake the darling buds of May,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">거친 바람이 오월의 고운 꽃봉오리를 흔들고,</span>
+                        <span class="font-bold">And summer’s lease hath all too short a date:</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">여름의 빌려온 시간은 너무나 짧기만 합니다.</span>
+                    </div>
+                    <div class="poem-stanza">
+                        <span class="font-bold">But thy eternal summer shall not fade</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">하지만 그대의 영원한 여름은 시들지 않을 것이며</span>
+                        <span class="font-bold">Nor lose possession of that fair thou owest;</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">그대가 지닌 아름다움 또한 사라지지 않을 것입니다.</span>
+                    </div>
+                    <div class="poem-stanza">
+                        <span class="font-bold">So long as men can breathe or eyes can see,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">인간이 숨을 쉴 수 있고, 눈이 있어 볼 수 있는 한,</span>
+                        <span class="font-bold">So long lives this and this gives life to thee.</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">이 시는 살아남아 그대에게 영원한 생명을 줄 것입니다.</span>
+                    </div>
+                `,
+                commentarySub: "예술과 기록이 선물하는 영원한 생명력",
+                commentaryDesc: "이 시는 유한한 아름다움을 예술을 통해 영원히 보존하겠다는 찬란한 선언입니다. 현실의 아름다움은 흘러가 버리지만, 세월과 죽음조차 거스르는 영원함의 열쇠가 자신이 쓰는 '시 구절'에 있음을 보여줍니다.<br><br>이는 지식과 가치를 기록하고 계승하는 대학 공동체에게 문학이 가진 힘을 상기시킵니다. 우리가 연대의 마음으로 남기는 기록들은 세월의 풍파 속에서도 변하지 않는 영원한 생명력을 얻게 될 것입니다.",
+                question: "세월이 흘러도 빛바래지 않고, 여러분의 인생 속에서 영원히 남겨두고 싶은 소중한 가치는 무엇인가요?"
+            },
+            {
+                id: 3,
+                imgUrl: "https://images.unsplash.com/photo-1559564484-e48b3e040ff4?q=80&w=800&auto=format&fit=crop",
+                titleKr: "부드러운 목소리가 사라질 때",
+                titleEn: "Music, When Soft Voices Die",
+                authorKr: "퍼시 비시 셸리",
+                authorEn: "Percy Bysshe Shelley",
+                years: "(1792–1822)",
+                authorSub: "불꽃 같은 삶 속에서 영원을 노래한 낭만주의자",
+                authorDesc: "퍼시 비시 셸리는 존 키츠, 조지 바이런과 함께 영국 낭만주의 문학을 이끈 시인입니다. 30세라는 이른 나이에 생을 마감했지만, 그의 삶은 낡은 관습에 저항하고 이상적인 세계를 꿈꾸는 열정으로 가득 찼습니다.<br><br>섬세하고 음악적인 운율로 빚어낸 셸리의 시들은 물질적 세계가 소멸한 뒤에도 결코 사라지지 않는 영혼의 숭고함과 사랑의 불멸성을 보여주며, 오늘날까지 가장 아름다운 서정시로 평가받습니다.",
+                poemEn: "Music, when soft voices die,\nVibrates in the memory—\nOdours, when sweet violets sicken,\nLive within the sense they quicken.\n\nRose leaves, when the rose is dead,\nAre heaped for the beloved's bed;\nAnd so thy thoughts, when thou art gone,\nLove itself shall slumber on.",
+                poemHtml: `
+                    <div class="poem-stanza">
+                        <span class="font-bold">Music, when soft voices die,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">부드러운 목소리가 사라진 후에도, 음악은</span>
+                        <span class="font-bold">Vibrates in the memory—</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">기억 속에서 계속 울려 퍼집니다 —</span>
+                        <span class="font-bold">Odours, when sweet violets sicken,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">향기로운 제비꽃이 시들어도, 그 향기는</span>
+                        <span class="font-bold">Live within the sense they quicken.</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">그것이 일깨운 감각 속에 살아남습니다.</span>
+                    </div>
+                    <div class="poem-stanza">
+                        <span class="font-bold">Rose leaves, when the rose is dead,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">장미가 죽어 떨어진 후에도, 그 잎사귀들은</span>
+                        <span class="font-bold">Are heaped for the beloved's bed;</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">사랑하는 이의 잠자리를 위해 쌓입니다;</span>
+                        <span class="font-bold">And so thy thoughts, when thou art gone,</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">마찬가지로 그대가 떠난 후에도, 그대에 대한 생각들 위에서</span>
+                        <span class="font-bold">Love itself shall slumber on.</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">사랑 그 자체는 고요히 잠들 것입니다.</span>
+                    </div>
+                `,
+                commentarySub: "상실을 넘어 영원으로 이어지는 기억의 향기",
+                commentaryDesc: "이 짧은 서정시는 존재의 소멸과 남겨진 기억 사이의 관계를 포착합니다. 소리가 멈추고 꽃이 시드는 '상실' 이후에도, 그 본질적인 아름다움은 우리의 감각과 기억 속에 깊이 뿌리내립니다.<br><br>함께 학문을 탐구하고 청춘을 공유하는 대학이라는 공간에서, 지금 우리가 나누는 열정과 목소리들 역시 훗날 각자의 기억 속에서 시들지 않는 장미 잎사귀처럼 포근한 위로와 힘이 되어줄 것입니다.",
+                question: "시간이 흘러 모든 것이 변한다 해도, 당신의 기억 속에 가장 짙은 향기로 남게 될 순간은 언제인가요?"
+            },
+            {
+                id: 4,
+                imgUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop",
+                titleKr: "천국과 지옥의 결혼 (발췌)",
+                titleEn: "The Marriage of Heaven and Hell",
+                authorKr: "윌리엄 블레이크",
+                authorEn: "William Blake",
+                years: "(1757–1827)",
+                authorSub: "이성을 넘어선 예언자적 상상력의 화신",
+                authorDesc: "윌리엄 블레이크는 영문학사에서 가장 독창적인 선구자로 평가받는 시인이자 화가입니다. 이성을 맹신하던 계몽주의에 격렬하게 저항하며, 글과 그림을 새겨 넣어 자신만의 독자적인 신화적 세계를 창조해 냈습니다.<br><br>기존의 이분법적 사고를 해체하는 파괴적이고도 창조적인 생명력을 뿜어내는 그의 작품들은 인간 내면의 무의식과 억압된 에너지를 해방시킨 예술의 정수로 추앙받고 있습니다.",
+                poemEn: "Without Contraries is no progression.\nAttraction and Repulsion, Reason and Energy, Love and Hate, are necessary to Human existence.\nGood is Heaven. Evil is Hell.",
+                poemHtml: `
+                    <div class="poem-stanza">
+                        <span class="font-bold">Without Contraries is no progression.</span><br>
+                        <span class="text-gray-500 text-sm block mb-2">대립이 없으면 발전도 없다.</span>
+                        
+                        <span class="font-bold">Attraction and Repulsion, Reason and Energy, Love and Hate, are necessary to Human existence.</span><br>
+                        <span class="text-gray-500 text-sm block mb-2">끌림과 반발, 이성과 에너지, 사랑과 증오는 인간 존재에 필수 불가결한 것이다.</span>
+                        
+                        <span class="font-bold">Good is Heaven. Evil is Hell.</span><br>
+                        <span class="text-gray-500 text-sm block mb-1">선은 천국이요, 악은 지옥이다.</span>
+                    </div>
+                `,
+                commentarySub: "이성과 에너지의 충돌이 빚어내는 창조적 진보",
+                commentaryDesc: "이 구절은 선과 악이라는 전통적인 이분법을 전복시킵니다. 블레이크는 '천국(이성)'의 고요함과 '지옥(에너지)'의 역동성이 치열하게 충돌하고 결합할 때 비로소 진정한 인간의 '발전'이 이루어진다고 통찰합니다.<br><br>체계적인 학문의 질서 속에서 끊임없이 새롭고 파괴적인 상상력을 융합해야 하는 대학의 학문적 여정 또한 이와 같습니다. 기존의 틀을 깨는 거침없는 에너지와 이를 정립하는 이성이 만날 때, 우리는 전에 없던 새로운 지식이라는 결실에 도달할 수 있습니다.",
+                question: "당신의 내면을 채우고 있는 '이성'과 뜨거운 '에너지' 중, 오늘 당신을 나아가게 하는 힘은 무엇인가요?"
+            }
+        ];
+
+        let currentAudio = null;
+        let isPlaying = false;
+        let currentPoem = null;
+
+        // --- 초기화 및 시네마틱 인트로 ---
+        window.onload = () => {
+            renderList();
+            
+            const introMessage = "언어의 경계를 넘어, 내면의 심연으로.\n영시 한 장이 건네는 고요한 위로를 만나보세요.";
+            const twElement = document.getElementById('typewriter-text');
+            let charIndex = 0;
+            let isSkipped = false;
+
+            const intro1 = document.getElementById('intro-screen-1');
+            const intro2 = document.getElementById('intro-screen-2');
+            const mainScreen = document.getElementById('main-screen');
+
+            // 1. 첫 번째 화면(타이틀)이 해변 시퀀스(약 7.5초)를 모두 보여준 후 퇴장
+            setTimeout(() => {
+                if (isSkipped) return;
+                intro1.style.opacity = '0';
+                
+                setTimeout(() => {
+                    if (isSkipped) return;
+                    intro1.style.visibility = 'hidden';
+                    
+                    // 2. 두 번째 화면 표시 (타자기)
+                    intro2.style.visibility = 'visible';
+                    intro2.style.opacity = '1';
+                    
+                    // 화면 전환 후 1초 뒤 타이핑 시작
+                    setTimeout(() => {
+                        if (!isSkipped) {
+                            twElement.classList.add('typing-cursor');
+                            typeWriter();
+                        }
+                    }, 1000);
+                }, 1500); 
+            }, 7500); 
+
+            // 타이핑 함수
+            function typeWriter() {
+                if (isSkipped) return;
+                
+                if (charIndex < introMessage.length) {
+                    const char = introMessage.charAt(charIndex);
+                    if (char === '\n') {
+                        twElement.innerHTML += '<br>';
+                    } else {
+                        twElement.innerHTML += char;
+                    }
+                    charIndex++;
+                    setTimeout(typeWriter, 70);
+                } else {
+                    twElement.classList.remove('typing-cursor');
+                    setTimeout(() => {
+                        if (!isSkipped) finishIntro();
+                    }, 2000); 
+                }
+            }
+
+            // 3. 인트로 종료 시 메인으로 바로 진입
+            function finishIntro() {
+                if (isSkipped) return;
+                intro2.style.opacity = '0';
+                
+                setTimeout(() => {
+                    if (isSkipped) return;
+                    intro2.style.visibility = 'hidden';
+                    mainScreen.style.display = 'block';
+                    setTimeout(() => {
+                        mainScreen.classList.add('active');
+                    }, 50);
+                }, 1500);
+            }
+
+            // 스킵 기능 (화면 아무 곳이나 터치 시 모든 인트로 종료 후 바로 메인으로)
+            const skipIntro = () => {
+                if (isSkipped) return;
+                isSkipped = true;
+                intro1.style.opacity = '0';
+                intro2.style.opacity = '0';
+                setTimeout(() => {
+                    intro1.style.visibility = 'hidden';
+                    intro2.style.visibility = 'hidden';
+                    mainScreen.style.display = 'block';
+                    setTimeout(() => {
+                        mainScreen.classList.add('active');
+                    }, 50);
+                }, 500);
+            };
+
+            intro1.addEventListener('click', skipIntro);
+            intro2.addEventListener('click', skipIntro);
+        };
+
+        // --- 메인 리스트 렌더링 ---
+        function renderList() {
+            const grid = document.getElementById('poem-grid');
+            grid.innerHTML = poems.map((poem, index) => {
+                const isEven = index % 2 !== 0;
+                const marginClass = isEven ? 'mt-12' : '';
+                return `
+                <div onclick="openDetail(${poem.id})" class="cursor-pointer group ${marginClass}">
+                    <!-- 작품 액자(이미지) -->
+                    <div class="relative w-full aspect-[3/4] bg-gray-100 mb-4 overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+                        <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style="background-image: url('${poem.imgUrl}')"></div>
+                        <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500"></div>
+                    </div>
+                    <!-- 작품 정보 -->
+                    <div class="text-center px-1">
+                        <p class="text-[10px] text-gray-400 font-bold mb-1.5 tracking-[0.2em] uppercase">No. 0${index + 1}</p>
+                        <h3 class="serif text-[15px] font-bold text-gray-900 mb-1 leading-tight word-break-keep">${poem.titleEn}</h3>
+                        <p class="text-[11px] text-gray-500 mb-2">${poem.titleKr}</p>
+                        <p class="text-[10px] font-medium text-gray-800 uppercase tracking-wider">${poem.authorEn}</p>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // --- 상세 페이지 열기 ---
+        function openDetail(id) {
+            currentPoem = poems.find(p => p.id === id);
+            if(!currentPoem) return;
+
+            // 데이터 바인딩
+            document.getElementById('detail-title').innerText = currentPoem.titleKr;
+            document.getElementById('detail-author').innerText = currentPoem.authorKr;
+            document.getElementById('detail-meta').innerText = `${currentPoem.authorEn} ${currentPoem.years}`;
+            
+            document.getElementById('author-sub').innerText = currentPoem.authorSub;
+            document.getElementById('author-desc').innerHTML = currentPoem.authorDesc;
+            
+            document.getElementById('poem-text').innerHTML = currentPoem.poemHtml;
+            
+            document.getElementById('commentary-sub').innerText = currentPoem.commentarySub;
+            document.getElementById('commentary-desc').innerHTML = currentPoem.commentaryDesc;
+            
+            document.getElementById('reflection-question').innerText = `"${currentPoem.question}"`;
+
+            // 화면 전환
+            document.getElementById('main-screen').classList.remove('active');
+            window.scrollTo(0, 0); // 스크롤 맨 위로
+            setTimeout(() => {
+                document.getElementById('main-screen').style.display = 'none';
+                document.getElementById('detail-screen').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('detail-screen').classList.add('active');
+                }, 50);
+            }, 300);
+        }
+
+        // --- 메인으로 돌아가기 ---
+        function goHome() {
+            stopAudio(); // 오디오 정지
+            
+            document.getElementById('detail-screen').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('detail-screen').style.display = 'none';
+                document.getElementById('main-screen').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('main-screen').classList.add('active');
+                }, 50);
+            }, 300);
+        }
+
+        // --- 학과 소개 화면 열기/닫기 ---
+        function openDept() {
+            document.getElementById('main-screen').classList.remove('active');
+            window.scrollTo(0, 0);
+            setTimeout(() => {
+                document.getElementById('main-screen').style.display = 'none';
+                document.getElementById('dept-screen').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('dept-screen').classList.add('active');
+                    lucide.createIcons(); // 아이콘 새로고침
+                }, 50);
+            }, 300);
+        }
+
+        function closeDept() {
+            document.getElementById('dept-screen').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('dept-screen').style.display = 'none';
+                document.getElementById('main-screen').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('main-screen').classList.add('active');
+                }, 50);
+            }, 300);
+        }
+
+        // --- 오디오북 (웹 TTS 기능 활용) ---
+        function toggleAudio() {
+            if (!currentPoem) return;
+
+            if (isPlaying) {
+                stopAudio();
+            } else {
+                playAudio(currentPoem.poemEn);
+            }
+        }
+
+        function playAudio(text) {
+            // 브라우저 TTS 지원 확인
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // 기존 재생 정지
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; // 영어 발음
+                utterance.rate = 0.85; // 시 낭송이므로 속도를 약간 느리게
+                utterance.pitch = 0.9; // 약간 낮은 톤으로 차분하게
+                
+                utterance.onstart = () => {
+                    isPlaying = true;
+                    updateAudioUI(true);
+                };
+                
+                utterance.onend = () => {
+                    isPlaying = false;
+                    updateAudioUI(false);
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("현재 사용 중인 기기나 브라우저에서는 오디오북 기능이 지원되지 않습니다.");
+            }
+        }
+
+        function stopAudio() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            isPlaying = false;
+            updateAudioUI(false);
+        }
+
+        function updateAudioUI(playing) {
+            const icon = document.getElementById('audio-icon');
+            const wave = document.getElementById('audio-wave');
+            const btn = document.getElementById('audio-btn');
+            
+            if (playing) {
+                icon.setAttribute('data-lucide', 'square');0
+                btn.classList.add('animate-pulse');
+                wave.style.display = 'flex';
+            } else {
+                icon.setAttribute('data-lucide', 'play');
+                btn.classList.remove('animate-pulse');
+                wave.style.display = 'none';
+            }
+            lucide.createIcons(); // 아이콘 새로고침
+        }
+
+    </script>
+</body>
+</html>earning ...
+- 👯 I’m looking to collaborate on ...
+- 🤔 I’m looking for help with ...
+- 💬 Ask me about ...
+- 📫 How to reach me: ...
+- 😄 Pronouns: ...
+- ⚡ Fun fact: ...
+-->
